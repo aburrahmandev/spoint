@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI দোকান সহকারী</title>
+    <style>
+        body { font-family: sans-serif; background: #e5ddd5; display: flex; flex-direction: column; height: 100vh; margin: 0; }
+        #chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; }
+        .msg { margin-bottom: 10px; padding: 10px; border-radius: 10px; max-width: 80%; }
+        .user { background: #dcf8c6; align-self: flex-end; }
+        .bot { background: white; align-self: flex-start; }
+        .footer { padding: 10px; display: flex; background: #eee; }
+        input { flex: 1; padding: 10px; }
+    </style>
+</head>
+<body>
+
+<div id="chat-container">
+    <div class="msg bot">আসসালামু আলাইকুম! আমি আপনার দোকানের সহকারী। কিছু জিজ্ঞেস করুন।</div>
+</div>
+
+<div class="footer">
+    <input type="text" id="userInput" placeholder="প্রশ্ন লিখুন...">
+    <button onclick="askGemini()">পাঠান</button>
+</div>
+
+<script>
+async function askGemini() {
+    const input = document.getElementById("userInput").value;
+    if(!input) return;
+
+    // ১. আপনার API KEY এখানে বসান
+    const API_KEY = "আপনার_API_KEY_এখানে_দিন";
+    const container = document.getElementById("chat-container");
+
+    container.innerHTML += `<div class="msg user">${input}</div>`;
+    document.getElementById("userInput").value = "";
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: "তুমি একজন দোকান সহকারী। আমার দোকানের তথ্য: মোবাইল-২০,০০০ টাকা, চার্জার-৫০০ টাকা। শুধু এই তথ্যগুলো নিয়ে উত্তর দাও। কাস্টমার জিজ্ঞেস করেছে: " + input }] }]
+            })
+        });
+
+        const data = await response.json();
+        const reply = data.candidates[0].content.parts[0].text;
+        container.innerHTML += `<div class="msg bot">${reply}</div>`;
+    } catch (e) {
+        container.innerHTML += `<div class="msg bot">দুঃখিত, এখন সার্ভার কানেক্ট হচ্ছে না।</div>`;
+    }
+}
+</script>
+</body>
+</html>
